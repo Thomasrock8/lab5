@@ -24,18 +24,15 @@ component top is
   );
 end component;  
 
-signal a               : std_logic_vector(2 downto 0) := (others => '0');
-signal b               : std_logic_vector(2 downto 0) := (others => '0');
-signal add             : std_logic;
-signal sub             : std_logic; 
+signal button          : std_logic := '0';
+signal LED             : std_logic_vector(3 downto 0) := (others => '0');
+signal data            : std_logic_vector(7 downto 0) := (others => '0');
 signal seven_seg1      : std_logic_vector(6 downto 0);
 signal seven_seg2      : std_logic_vector(6 downto 0);
-signal seven_seg3      : std_logic_vector(6 downto 0);
-constant NUM_BITS          : integer := 3;
-constant SEQUENTIAL_FLAG   : boolean := true;     -- false : concurrent stimuli, true: sequential stimuli
-constant period       : time := 20ns;                                              
-signal clk            : std_logic := '0';
-signal reset          : std_logic := '1';
+signal seven_seg3      : std_logic_vector(6 downto 0);  
+constant period        : time := 20 ns;                                            
+signal clk             : std_logic := '0';
+signal reset           : std_logic := '1';
 
 begin
 
@@ -43,10 +40,9 @@ uut: top
   port map(
     clk             => clk,
     reset           => reset,
-	a               => a,
-	b               => b,
-    add             => add,
-	sub             => sub,
+	button          => button,
+    data            => data,
+	LED             => open,
     seven_seg1      => open,
 	seven_seg2      => open,
     seven_seg3      => open
@@ -67,39 +63,31 @@ async_reset: process
     wait;
 end process; 
 
-sequential_stimuli: if SEQUENTIAL_FLAG generate
-  sequential_tb : process 
-    begin
-      report "****************** sequential testbench start ****************";
-      wait for 10 ns;   -- let all the initial conditions trickle through
-        for k in 0 to 1  loop
-          add <= std_logic(not add);
-            for i in 0 to ((2 ** NUM_BITS) - 1) loop
-              a <= std_logic_vector(unsigned(a) + 1 );
-                for j in 0 to ((2 ** NUM_BITS) - 1)  loop
-                  b <= std_logic_vector(unsigned(b) + 1 );
-                wait for 10 ns;
-               end loop;
-             end loop;
-        end loop;
-      report "****************** sequential testbench stop ****************";
-	  
-	        report "****************** sequential testbench start ****************";
-      wait for 10 ns;   -- let all the initial conditions trickle through
-        for k in 0 to 1  loop
-          sub <= std_logic(not sub);
-            for i in 0 to ((2 ** NUM_BITS) - 1) loop
-              a <= std_logic_vector(unsigned(a) + 1 );
-                for j in 0 to ((2 ** NUM_BITS) - 1)  loop
-                  b <= std_logic_vector(unsigned(b) + 1 );
-                wait for 10 ns;
-               end loop;
-             end loop;
-        end loop;
-      report "****************** sequential testbench stop ****************";
-	  
-      wait;
-  end process; 
-end generate sequential_stimuli;
+simulate: process
+ begin
+        wait for 100 ns;
+        data <= "11001000";
+		LED <= "0001";
+		wait for 100 ns;
+		button <= '1';
+		wait for 100 ns;
+	    button <= '0';
+		wait for 100 ns;
+		button <= '1';
+		wait for 100 ns;
+	    button <= '0';
+		data <= "01100100";
+		LED <= "0010";
+		wait for 100 ns;
+		button <= '1';
+		wait for 100 ns;
+	    button <= '0';
+		LED <= "0100";
+		wait for 100 ns;
+		button <= '1';
+		wait for 100 ns;
+	    button <= '0';
+		LED <= "1000";
+ end process;
 
   end arch;

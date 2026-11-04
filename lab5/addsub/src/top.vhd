@@ -20,15 +20,15 @@ end top;
 
 architecture beh of top is
 
-signal a            :std_logic;
-signal b            :std_logic;
+signal a            :std_logic_vector(7 downto 0);
+signal b            :std_logic_vector(7 downto 0);
 signal button_s     :std_logic;
-signal nextState    :std_logic;
+signal nextState    :std_logic_vector(3 downto 0);
 signal state        :std_logic_vector(3 downto 0);
 signal data_s       :std_logic_vector(7 downto 0);
-signal sum          :std_logic_vector(7 downto 0);
-signal diff         :std_logic_vector(7 downto 0);
-signal output       :std_logic_vector(7 downto 0);
+signal sum          :std_logic_vector(8 downto 0);
+signal diff         :std_logic_vector(8 downto 0);
+signal output       :std_logic_vector(8 downto 0);
 signal output_pad   :std_logic_vector(11 downto 0);
 signal out1s        :std_logic_vector(3 downto 0);
 signal out10s       :std_logic_vector(3 downto 0);
@@ -66,8 +66,8 @@ component stateReg is
   port (
     clk              : in std_logic; 
     reset            : in std_logic;
-	nextState        : in std_logic;
-    state            : out std_logic_vector(3 downto 0);
+	nextState        : in std_logic_vector(3 downto 0);
+    state            : out std_logic_vector(3 downto 0)
   );  
 end component; 
 
@@ -77,8 +77,8 @@ component add_sub is
     reset            : in std_logic;
     a                : in std_logic_vector(7 downto 0);
 	b                : in std_logic_vector(7 downto 0);
-    sum              : out std_logic_vector(7 downto 0);
-	diff             : out std_logic_vector(7 downto 0)
+    sum              : out std_logic_vector(8 downto 0);
+	diff             : out std_logic_vector(8 downto 0)
   );  
 end component; 
 
@@ -92,23 +92,25 @@ component double_dabble is
  end component;
 
 begin
-output_pad <= "0000" & output;
+output_pad <= "000" & output;
 
-if(button_s) then
+process(button_s,state)
+begin
+if(button_s = '1') then
 case state is
  when "0001" => 
- nextState <= "0010"
- end if;
+ nextState <= "0010";
  when "0010" => 
- nextState <= "0100"
- end if;
+ nextState <= "0100";
  when "0100" => 
- nextState <= "1000"
- end if;
+ nextState <= "1000";
   when "1000" => 
- nextState <= "0001"
- end if;
+ nextState <= "0001";
+  when others =>
+ nextState <= "0001";
  end case;
+  end if;
+ end process;
  
  process(clk,reset)
  begin
@@ -116,11 +118,11 @@ case state is
   case state is
   when "0001" =>
   a <= data_s;
-  end if;
   when "0010" =>
   b <= data_s;
-  end if;
+  when others =>
  end case;
+  end if;
 end process;
  
  process(clk,reset)
@@ -128,18 +130,16 @@ end process;
  if (clk'event and clk = '1') then
   case state is
   when "0001" =>
-  output <= a;
-  end if;
+  output <= '0' & a;
   when "0010" =>
-  output <= b;
-  end if;
+  output <= '0' & b;
   when "0100" =>
   output <= sum;
-  end if;
   when "1000" =>
   output <= diff;
-  end if;
+  when others =>
  end case;
+ end if;
 end process;
 
 uutas: add_sub
